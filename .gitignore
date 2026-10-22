@@ -1,0 +1,8 @@
+node_modules/
+.env
+data/schools.json
+data/cs_people.json
+data/cache/
+map/data/
+.DS_Store
+*.log

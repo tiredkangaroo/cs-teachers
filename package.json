@@ -1,0 +1,16 @@
+{
+  "name": "cs-teachers-tristate",
+  "version": "1.0.0",
+  "description": "Find computer science teachers, club advisors, and department leads at public high schools in the NY/NJ/CT tristate area, and visualize them on an interactive map.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "schools": "node src/fetchSchools.js",
+    "find": "node src/index.js",
+    "export": "node src/exportXlsx.js",
+    "map": "python3 -m http.server 8080 -d map"
+  }
+}

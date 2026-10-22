@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CS Teachers &amp; Advisors — Tristate (NY/NJ/CT)</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <aside id="sidebar">
+    <header>
+      <h1>CS Teachers &amp; Advisors</h1>
+      <p class="subtitle">NY · NJ · CT public high schools</p>
+      <div id="stats" class="stats">Loading…</div>
+      <input
+        id="search"
+        type="search"
+        placeholder="Search school, district, name, role…"
+        autocomplete="off"
+      />
+      <div id="filters">
+        <button class="state-pill" data-state="all">All</button>
+        <button class="state-pill" data-state="NY">NY</button>
+        <button class="state-pill" data-state="NJ">NJ</button>
+        <button class="state-pill" data-state="CT">CT</button>
+      </div>
+    </header>
+    <ul id="list" class="list"></ul>
+    <footer>
+      Data gathered from public school websites and directories. Emails are
+      school-published professional contact info.
+    </footer>
+  </aside>
+  <main id="map"></main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
