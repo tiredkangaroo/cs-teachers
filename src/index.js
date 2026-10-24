@@ -8,13 +8,15 @@ import {
   MAP_DATA_FILE,
   CACHE_DIR,
   HC_API_KEY,
+  HC_MODEL,
   LLM_PROVIDER,
   OPENROUTER_API_KEY,
-  SEARCH_PROVIDER,
+  OPENROUTER_MODEL,
   CONCURRENCY,
   REQUEST_DELAY_MS,
 } from './config.js';
 import { readJson, writeJson, ensureDir, sleep } from './utils.js';
+import { effectiveSearchProvider } from './ai.js';
 import { discoverSchool, verifyAIConnection } from './discovery.js';
 import { main as fetchSchools } from './fetchSchools.js';
 
@@ -181,8 +183,8 @@ export async function main(argv = []) {
   }
 
   // Validate the keys the active providers actually need.
-  const searchUsesOpenrouter =
-    SEARCH_PROVIDER === 'openrouter' || (SEARCH_PROVIDER === 'auto' && !!OPENROUTER_API_KEY);
+  const searchProvider = effectiveSearchProvider();
+  const searchUsesOpenrouter = searchProvider === 'openrouter';
   const missing = [];
   if (searchUsesOpenrouter && !OPENROUTER_API_KEY) missing.push('OPENROUTER_API_KEY (web search)');
   if (!searchUsesOpenrouter && !HC_API_KEY) missing.push('HACK_CLUB_AI_API_KEY (Exa web search)');
@@ -197,6 +199,17 @@ export async function main(argv = []) {
     process.exitCode = 1;
     return;
   }
+
+  // First line of output: state exactly which provider serves web search and
+  // which serves regular AI (LLM) calls, plus the "<search> & <LLM>" combination.
+  const searchName = searchProvider === 'exa' ? 'Hack Club AI' : 'OpenRouter';
+  const searchSuffix = searchProvider === 'exa' ? ' (Exa)' : ' (:online)';
+  const llmName = LLM_PROVIDER === 'openrouter' ? 'OpenRouter' : 'Hack Club AI';
+  const llmModel = LLM_PROVIDER === 'openrouter' ? OPENROUTER_MODEL : HC_MODEL;
+  console.log(
+    `Routing — web search: ${searchName}${searchSuffix} | ` +
+      `AI calls: ${llmName} (${llmModel})  →  "${searchName} & ${llmName}"`,
+  );
 
   // 1. School list
   let schools = readJson(SCHOOLS_FILE, null);

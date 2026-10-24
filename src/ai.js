@@ -154,15 +154,24 @@ export async function openrouterWebSearch(query, { model } = {}) {
 }
 
 /**
- * Unified web search used by discovery. Provider is chosen by SEARCH_PROVIDER:
- *   'openrouter' -> OpenRouter :online search (default when an OpenRouter key is set)
- *   'exa'        -> Hack Club AI Exa proxy
- *   'auto'       -> OpenRouter if a key is present, otherwise Exa
- * All return `[{url, title, text}]`.
+ * Resolve which provider actually serves web search under the current config:
+ *   SEARCH_PROVIDER 'openrouter' -> OpenRouter :online search
+ *   SEARCH_PROVIDER 'exa'        -> Hack Club AI Exa proxy
+ *   SEARCH_PROVIDER 'auto'       -> OpenRouter if a key is set, otherwise Exa
+ * Returns 'openrouter' or 'exa'.
+ */
+export function effectiveSearchProvider() {
+  if (SEARCH_PROVIDER === 'exa') return 'exa';
+  if (SEARCH_PROVIDER === 'openrouter') return 'openrouter';
+  return OPENROUTER_API_KEY ? 'openrouter' : 'exa';
+}
+
+/**
+ * Unified web search used by discovery. Provider is resolved by
+ * effectiveSearchProvider(). All paths return `[{url, title, text}]`.
  */
 export async function webSearch(query, opts = {}) {
-  if (SEARCH_PROVIDER === 'exa') return exaSearch(query, opts);
-  if (SEARCH_PROVIDER === 'openrouter') return openrouterWebSearch(query, opts);
-  if (OPENROUTER_API_KEY) return openrouterWebSearch(query, opts);
-  return exaSearch(query, opts);
+  return effectiveSearchProvider() === 'exa'
+    ? exaSearch(query, opts)
+    : openrouterWebSearch(query, opts);
 }

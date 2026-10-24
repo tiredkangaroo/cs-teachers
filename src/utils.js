@@ -24,6 +24,38 @@ export function loadEnv() {
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/** Human name for the API host that owns `url` (for accurate error messages). */
+function providerName(url) {
+  try {
+    const host = new URL(url).host;
+    if (host.includes('openrouter')) return 'OpenRouter';
+    if (host.includes('hackclub')) return 'Hack Club AI';
+    return host;
+  } catch {
+    return 'the API';
+  }
+}
+
+function providerEnvVar(url) {
+  const name = providerName(url);
+  if (name === 'OpenRouter') return 'OPENROUTER_API_KEY';
+  if (name === 'Hack Club AI') return 'HACK_CLUB_AI_API_KEY';
+  return 'the API key';
+}
+
+/** Pull a readable message out of a JSON error body (OpenRouter, Hack Club, etc.). */
+function apiErrorDetail(body) {
+  try {
+    const j = JSON.parse(body);
+    const msg = j?.error?.message || j?.message || j?.error;
+    if (typeof msg === 'string') return msg;
+    if (msg && typeof msg === 'object') return JSON.stringify(msg);
+  } catch {
+    /* not JSON */
+  }
+  return '';
+}
+
 /** fetch wrapper with timeout, retry/backoff, and special handling for 402/429. */
 export async function httpFetch(url, opts = {}, retries = 4) {
   let lastErr;
@@ -51,8 +83,18 @@ export async function httpFetch(url, opts = {}, retries = 4) {
         throw err;
       }
       if (res.status === 401 || res.status === 403) {
-        const err = new Error(`Hack Club AI auth error (${res.status}). Check HACK_CLUB_AI_API_KEY in .env`);
+        const body = await res.text().catch(() => '');
+        const provider = providerName(url);
+        const detail = apiErrorDetail(body);
+        const hint =
+          res.status === 401
+            ? `Check ${providerEnvVar(url)} in .env.`
+            : `(403 from ${provider} is often a key usage limit or disabled model — see the ${provider} dashboard)`;
+        const err = new Error(
+          `${provider} auth error (${res.status})${detail ? ` — ${detail}` : ''}. ${hint}`,
+        );
         err.code = 'AUTH';
+        err.status = res.status;
         throw err;
       }
       if (res.status >= 500) {
